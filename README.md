@@ -1,4 +1,4 @@
-# Automate_kSNP
+# Automate_kSNP - little tweak for kSNPv3automate.py
 
 Added new parameter "-e" or "--extension" to **kSNPv3automate.py**. This enables the script to recognize genome assembly FASTA file extensions of your choice. Original script only detected files with a *.fasta* extension. 
 
