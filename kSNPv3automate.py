@@ -25,6 +25,7 @@ from argparse import ArgumentParser
 parser = ArgumentParser(description='runs all kSNP on all fasta and fastq files in the specified directory. Raw fastq files are joined and converted to fasta')
 parser.add_argument('-p', '--path', required=True, help='Specify directory where the files you wish to run are located. The directory should contain only files you wish to include in analysis')
 parser.add_argument('-k', '--kvalue', required=False, default="51", help='Specify the desired k-value. Default is 51.')
+parser.add_argument('-e', '--extension', required=False, default="fasta", help='Specify the desired assembly file extension. Default is .fasta')
 parser.add_argument('-o', '--outfile', required=False, default=date, help='Name of output folder. Default is "report".')
 #  New
 parser.add_argument('-c', '--minCoverage', required=False, default="10", help='Minimum number of times a kmer must occur in an unassembled genome for it to be considered for a SNP allele')
@@ -36,6 +37,8 @@ args = vars(parser.parse_args())
 path = args['path']
 # desired k-value
 kvalue = (args['kvalue'])
+# desired genome assembly file extension
+extension = (args['extension'])
 # name of output folder
 Outname = args['outfile']
 # Minimum coverage necessary for an allele to be considered in the analyis - NEW
@@ -88,12 +91,12 @@ def Joinconvertfastq():
     print "done all fastq joining and conversion"
 
 
-def Writefilelist():
+def Writefilelist(fileExt):
     """Makes a text file named k#Runlist"""
     # call Joinconvertfastq before calling this so all fastq and fasta are in the Filestorun list
     # Adds all fasta to the Filestorun list
     print "writing file list"
-    Allfastas = glob.glob("*fasta")
+    Allfastas = glob.glob("*%s" % (fileExt))
     for fastafile in Allfastas:
         Filestorun.append(fastafile)
     filelistfilehandle = open("%s/%s" % (path, filelistfilename), "wb")
@@ -110,14 +113,14 @@ def RunkSNP(Ksize, filelist, outdirname):
     os.chdir(path)
     # /usr/local/kSNP3.0/
     # Changed to allow mincov
-    subprocess.call(["tcsh", "/usr/local/kSNP3.0/kSNP3", "-in", filelist, "-k", Ksize, "-c", mincov, "-outdir", outdirname])
-    #os.system("tcsh /usr/local/kSNP3.0/kSNP3 -in %s -k %s -outdir %s" % (filelist, Ksize, outdirname))
+    #subprocess.call(["tcsh", "kSNP3", "-in", filelist, "-k", Ksize, "-c", mincov, "-outdir", outdirname])
+    os.system("kSNP3 -in %s -k %s -outdir %s -ML -NJ -vcf -core" % (filelist, Ksize, outdirname))
     os.chdir(path)
     print "...finished kSNP"
 
 os.chdir(path)
 Joinconvertfastq()
-Writefilelist()
+Writefilelist(extension)
 RunkSNP(kvalue, filelistfilename, Outname)
 # Deletes the unnecessary file
 print "deleting intermediate files"
